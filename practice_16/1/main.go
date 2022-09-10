@@ -31,3 +31,5 @@ func printChessCell(firstIndex int, secondIndex int) {
 		fmt.Print(" ")
 	}
 }
+
+//a
