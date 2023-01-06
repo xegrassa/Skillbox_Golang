@@ -35,8 +35,8 @@ package main
 import (
 	"fmt"
 	"io"
-	"practice_28/pkg/storage"
-	"practice_28/pkg/student"
+	"skillbox/practice_28/pkg/storage"
+	"skillbox/practice_28/pkg/student"
 	"strings"
 )
 

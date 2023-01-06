@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"practice_28/pkg/student"
+	"skillbox/practice_28/pkg/student"
 )
 
 type Storage struct {

@@ -35,7 +35,7 @@ package main
 import (
 	"fmt"
 	"io"
-	"skillboxProfession/practice_27/storage"
+	"skillbox/practice_27/storage"
 	"strings"
 )
 
