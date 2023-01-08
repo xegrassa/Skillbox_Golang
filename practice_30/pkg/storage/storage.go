@@ -2,7 +2,9 @@ package storage
 
 import (
 	"fmt"
+	h "skillbox/practice_30/pkg/helpers"
 	m "skillbox/practice_30/pkg/models"
+
 	"strings"
 )
 
@@ -22,6 +24,17 @@ func (s *Storage) AddNewUser(u *m.User) int {
 func (s *Storage) GetUser(id int) (*m.User, bool) {
 	u, ok := s.users[id]
 	return u, ok
+}
+
+func (s *Storage) DeleteUser(id int) {
+	delete(s.users, id)
+
+	for _, u := range s.users {
+		index := h.GetElemIndexFromSlice(u.Friends, id)
+		if index != -1 {
+			u.Friends = h.DeleteElemFromSlice(u.Friends, index)
+		}
+	}
 }
 
 func (s *Storage) ToString() string {

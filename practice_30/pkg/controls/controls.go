@@ -8,6 +8,7 @@ import (
 	h "skillbox/practice_30/pkg/helpers"
 	m "skillbox/practice_30/pkg/models"
 	s "skillbox/practice_30/pkg/storage"
+	"strings"
 
 	"strconv"
 
@@ -37,7 +38,6 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: POST /make_friends")
 
 	var mfr m.MakeFriendsRequest
-
 	err := h.ParseJsonTo(&mfr, w, req)
 	if err != nil {
 		return
@@ -51,7 +51,7 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 
 	if !(ok_1 && ok_2) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Ошибка id! В базе нет одного из значений id"))
+		w.Write([]byte("Ошибка id! В базе нет одного из переданных значений id"))
 		return
 	}
 
@@ -63,14 +63,57 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "DELETE User 200\n")
+	log.Println("API: DELETE /user")
+
+	var dur m.DeleteUserRequest
+	err := h.ParseJsonTo(&dur, w, req)
+	if err != nil {
+		return
+	}
+	u, ok := s.UserStorage.GetUser(dur.TargetId)
+
+	switch ok {
+	case true:
+		uName := u.Name
+		s.UserStorage.DeleteUser(dur.TargetId)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(uName))
+	case false:
+		w.WriteHeader(http.StatusOK)
+	}
+
+	fmt.Println(s.UserStorage.ToString())
+	fmt.Println("=============================")
 }
 
 func GetFriends(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "GET Friends 200\n")
+	log.Println("API: GET /friends/{userId}")
+
+	uId := chi.URLParam(req, "userId")
+	uIdInt, _ := strconv.Atoi(uId)
+
+	u, ok := s.UserStorage.GetUser(uIdInt)
+	switch ok {
+	case true:
+		result := make([]string, 0)
+		for _, ufId := range u.Friends {
+			uf, _ := s.UserStorage.GetUser(ufId)
+			result = append(result, uf.Name)
+		}
+		rStr := strings.Join(result, " ")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(rStr))
+	case false:
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	fmt.Println(s.UserStorage.ToString())
+	fmt.Println("=============================")
 }
 
 func UpdateUser(w http.ResponseWriter, req *http.Request) {
+	log.Println("API: PUT /{userId}")
+
 	uId := chi.URLParam(req, "userId")
 	uIdInt, _ := strconv.Atoi(uId)
 
@@ -85,4 +128,7 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "UserId=%d\n", uIdInt)
 	w.Write([]byte("возраст пользователя успешно обновлён"))
+
+	fmt.Println(s.UserStorage.ToString())
+	fmt.Println("=============================")
 }

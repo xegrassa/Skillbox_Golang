@@ -21,3 +21,19 @@ func ParseJsonTo(u any, w http.ResponseWriter, req *http.Request) error {
 	}
 	return err
 }
+
+func DeleteElemFromSlice(s []int, i int) []int {
+	s[i] = s[len(s)-1]
+	s[len(s)-1] = 0
+	s = s[:len(s)-1]
+	return s
+}
+
+func GetElemIndexFromSlice(s []int, v int) int {
+	for i, vs := range s {
+		if v == vs {
+			return i
+		}
+	}
+	return -1
+}
