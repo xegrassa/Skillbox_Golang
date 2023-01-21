@@ -2,8 +2,8 @@ package storage
 
 import (
 	"fmt"
-	h "skillbox/practice_30/pkg/helpers"
-	m "skillbox/practice_30/pkg/models"
+	h "skillbox/practice_30/internal/helpers"
+	m "skillbox/practice_30/internal/models"
 
 	"strings"
 )

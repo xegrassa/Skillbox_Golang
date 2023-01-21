@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"skillbox/practice_30/pkg/controls"
+	"skillbox/practice_30/internal/controls"
 	"syscall"
 
 	"github.com/go-chi/chi"

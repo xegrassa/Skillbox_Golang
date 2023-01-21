@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	h "skillbox/practice_30/pkg/helpers"
-	m "skillbox/practice_30/pkg/models"
-	s "skillbox/practice_30/pkg/storage"
-	"strings"
+	h "skillbox/practice_30/internal/helpers"
+	m "skillbox/practice_30/internal/models"
+	s "skillbox/practice_30/internal/storage"
 
 	"strconv"
 
@@ -25,13 +24,15 @@ func CreateUser(w http.ResponseWriter, req *http.Request) {
 
 	userId := s.UserStorage.AddNewUser(&u)
 
-	response, _ := json.Marshal(map[string]int{"id": userId})
+	r := m.CreateUserResponse{Id: userId}
+	response, _ := json.Marshal(r)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(response)
 
-	fmt.Println(s.UserStorage.ToString())
-	fmt.Println("=============================")
+	log.Println(s.UserStorage.ToString())
+	log.Println("=============================")
 }
 
 func MakeFriends(w http.ResponseWriter, req *http.Request) {
@@ -51,15 +52,17 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 
 	if !(ok_1 && ok_2) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Ошибка id! В базе нет одного из переданных значений id"))
+		r := m.MakeFriendsResponse{Message: "Ошибка id! В базе нет одного из переданных значений id"}
+		response, _ := json.Marshal(r)
+		w.Write(response)
 		return
 	}
 
 	u_1.Friends = append(u_1.Friends, targetId)
 	u_2.Friends = append(u_2.Friends, sourceId)
 
-	fmt.Println(s.UserStorage.ToString())
-	fmt.Println("=============================")
+	log.Println(s.UserStorage.ToString())
+	log.Println("=============================")
 }
 
 func DeleteUser(w http.ResponseWriter, req *http.Request) {
@@ -76,14 +79,18 @@ func DeleteUser(w http.ResponseWriter, req *http.Request) {
 	case true:
 		uName := u.Name
 		s.UserStorage.DeleteUser(dur.TargetId)
+
+		r := m.DeleteUserResponse{UserName: uName}
+		response, _ := json.Marshal(r)
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(uName))
+		w.Write(response)
 	case false:
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 
-	fmt.Println(s.UserStorage.ToString())
-	fmt.Println("=============================")
+	log.Println(s.UserStorage.ToString())
+	log.Println("=============================")
 }
 
 func GetFriends(w http.ResponseWriter, req *http.Request) {
@@ -100,15 +107,17 @@ func GetFriends(w http.ResponseWriter, req *http.Request) {
 			uf, _ := s.UserStorage.GetUser(ufId)
 			result = append(result, uf.Name)
 		}
-		rStr := strings.Join(result, " ")
+		r := m.GetFriendsResponse{Friends: result}
+		response, _ := json.Marshal(r)
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(rStr))
+		w.Write(response)
 	case false:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	fmt.Println(s.UserStorage.ToString())
-	fmt.Println("=============================")
+	log.Println(s.UserStorage.ToString())
+	log.Println("=============================")
 }
 
 func UpdateUser(w http.ResponseWriter, req *http.Request) {
@@ -123,12 +132,15 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println(u)
+	log.Println(u)
+
+	fmt.Fprintf(w, "UserId=%d\n", uIdInt)
+	r := m.UpdateUserResponse{Message: "возраст пользователя успешно обновлён"}
+	response, _ := json.Marshal(r)
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "UserId=%d\n", uIdInt)
-	w.Write([]byte("возраст пользователя успешно обновлён"))
+	w.Write(response)
 
-	fmt.Println(s.UserStorage.ToString())
-	fmt.Println("=============================")
+	log.Println(s.UserStorage.ToString())
+	log.Println("=============================")
 }
