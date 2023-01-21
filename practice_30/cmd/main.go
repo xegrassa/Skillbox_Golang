@@ -19,6 +19,7 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -26,6 +27,10 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, os.Interrupt)
 
 	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
 	r.Post("/create", controls.CreateUser)
 	r.Post("/make_friends", controls.MakeFriends)
 	r.Delete("/user", controls.DeleteUser)
