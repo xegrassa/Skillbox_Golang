@@ -31,6 +31,10 @@ type GetFriendsResponse struct {
 	Friends []string `json:"result"`
 }
 
-type UpdateUserResponse struct {
+type UpdateUserAgeRequest struct {
+	Age string `json:"new_age"`
+}
+
+type UpdateUserAgeResponse struct {
 	Message string `json:"msg"`
 }

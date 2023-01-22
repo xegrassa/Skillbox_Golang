@@ -11,7 +11,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -39,10 +39,11 @@ func main() {
 	r.Put("/{userId}", controls.UpdateUser)
 
 	go func() {
-		fmt.Println("server running")
-		http.ListenAndServe(":8080", r)
+		addr := "127.0.0.1:8080"
+		log.Printf("server running on %v\n", addr)
+		http.ListenAndServe(addr, r)
 	}()
 
 	<-sigs
-	fmt.Println("server shutdown")
+	log.Println("server shutdown")
 }

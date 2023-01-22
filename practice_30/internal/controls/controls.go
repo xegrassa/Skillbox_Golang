@@ -2,7 +2,6 @@ package controls
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	h "skillbox/practice_30/internal/helpers"
@@ -126,19 +125,24 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 	uId := chi.URLParam(req, "userId")
 	uIdInt, _ := strconv.Atoi(uId)
 
-	var u m.User
-	err := h.ParseJsonTo(&u, w, req)
+	var handReq m.UpdateUserAgeRequest
+	err := h.ParseJsonTo(&handReq, w, req)
 	if err != nil {
 		return
 	}
+	newAgeInt, _ := strconv.Atoi(handReq.Age)
 
-	log.Println(u)
+	err = s.UserStorage.UpdateUserAge(uIdInt, newAgeInt)
+	var handResp m.UpdateUserAgeResponse
+	if err != nil {
+		handResp = m.UpdateUserAgeResponse{Message: err.Error()}
+		w.WriteHeader(http.StatusNotFound)
+	} else {
+		handResp = m.UpdateUserAgeResponse{Message: "Возраст пользователя успешно обновлён"}
+		w.WriteHeader(http.StatusOK)
+	}
+	response, _ := json.Marshal(handResp)
 
-	fmt.Fprintf(w, "UserId=%d\n", uIdInt)
-	r := m.UpdateUserResponse{Message: "возраст пользователя успешно обновлён"}
-	response, _ := json.Marshal(r)
-
-	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 
 	log.Println(s.UserStorage.ToString())

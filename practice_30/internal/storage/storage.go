@@ -37,6 +37,15 @@ func (s *Storage) DeleteUser(id int) {
 	}
 }
 
+func (s *Storage) UpdateUserAge(id int, newAge int) error {
+	u, ok := s.users[id]
+	if !ok {
+		return fmt.Errorf("Не найден пользователь с id:%v", id)
+	}
+	u.Age = newAge
+	return nil
+}
+
 func (s *Storage) ToString() string {
 	result := []string{}
 	for k, u := range s.users {
