@@ -8,25 +8,30 @@ import (
 	"strings"
 )
 
-var UserStorage = newStorage()
+func NewMemStorage() *MemStorage {
+	return &MemStorage{
+		users:      make(map[int]*m.User),
+		lastUserId: 0,
+	}
+}
 
-type Storage struct {
+type MemStorage struct {
 	users      map[int]*m.User
 	lastUserId int
 }
 
-func (s *Storage) AddNewUser(u *m.User) int {
+func (s *MemStorage) AddNewUser(u *m.User) int {
 	s.users[s.lastUserId] = u
 	s.lastUserId++
 	return s.lastUserId - 1
 }
 
-func (s *Storage) GetUser(id int) (*m.User, bool) {
+func (s *MemStorage) GetUser(id int) (*m.User, bool) {
 	u, ok := s.users[id]
 	return u, ok
 }
 
-func (s *Storage) DeleteUser(id int) {
+func (s *MemStorage) DeleteUser(id int) {
 	delete(s.users, id)
 
 	for _, u := range s.users {
@@ -37,7 +42,7 @@ func (s *Storage) DeleteUser(id int) {
 	}
 }
 
-func (s *Storage) UpdateUserAge(id int, newAge int) error {
+func (s *MemStorage) UpdateUserAge(id int, newAge int) error {
 	u, ok := s.users[id]
 	if !ok {
 		return fmt.Errorf("Не найден пользователь с id:%v", id)
@@ -46,18 +51,11 @@ func (s *Storage) UpdateUserAge(id int, newAge int) error {
 	return nil
 }
 
-func (s *Storage) ToString() string {
+func (s *MemStorage) ToString() string {
 	result := []string{}
 	for k, u := range s.users {
 		str := fmt.Sprintf("id: %v  name: %v  age: %d  friend: %v", k, u.Name, u.Age, u.Friends)
 		result = append(result, str)
 	}
 	return strings.Join(result, "\n")
-}
-
-func newStorage() Storage {
-	return Storage{
-		users:      make(map[int]*m.User),
-		lastUserId: 0,
-	}
 }

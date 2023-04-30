@@ -11,11 +11,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"skillbox/practice_30/internal/controls"
+	"skillbox/practice_30/internal/storage"
+
 	"syscall"
 
 	"github.com/go-chi/chi"
@@ -23,10 +26,16 @@ import (
 )
 
 func main() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, os.Interrupt)
-
 	r := chi.NewRouter()
+
+	sPointer := storage.NewMemStorage()
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithValue(r.Context(), "storage", sPointer)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	})
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -35,7 +44,6 @@ func main() {
 	r.Post("/make_friends", controls.MakeFriends)
 	r.Delete("/user", controls.DeleteUser)
 	r.Get("/friends/{userId}", controls.GetFriends)
-
 	r.Put("/{userId}", controls.UpdateUser)
 
 	go func() {
@@ -44,6 +52,9 @@ func main() {
 		http.ListenAndServe(addr, r)
 	}()
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, os.Interrupt)
 	<-sigs
+
 	log.Println("server shutdown")
 }

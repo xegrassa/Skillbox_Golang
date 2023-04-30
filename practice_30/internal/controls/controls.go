@@ -13,15 +13,23 @@ import (
 	"github.com/go-chi/chi"
 )
 
+type Controller struct {
+	repository s.Storage
+}
+
 func CreateUser(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: POST /create")
+
+	ctx := req.Context()
+	repository := ctx.Value("storage").(s.Storage)
+
 	var u m.User
 	err := h.ParseJsonTo(&u, w, req)
 	if err != nil {
 		return
 	}
 
-	userId := s.UserStorage.AddNewUser(&u)
+	userId := repository.AddNewUser(&u)
 
 	r := m.CreateUserResponse{Id: userId}
 	response, _ := json.Marshal(r)
@@ -30,12 +38,15 @@ func CreateUser(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write(response)
 
-	log.Println(s.UserStorage.ToString())
+	log.Println(repository.ToString())
 	log.Println("=============================")
 }
 
 func MakeFriends(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: POST /make_friends")
+
+	ctx := req.Context()
+	repository := ctx.Value("storage").(s.Storage)
 
 	var mfr m.MakeFriendsRequest
 	err := h.ParseJsonTo(&mfr, w, req)
@@ -46,8 +57,8 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 	sourceId := mfr.SourceId
 	targetId := mfr.TargetId
 
-	u_1, ok_1 := s.UserStorage.GetUser(sourceId)
-	u_2, ok_2 := s.UserStorage.GetUser(targetId)
+	u_1, ok_1 := repository.GetUser(sourceId)
+	u_2, ok_2 := repository.GetUser(targetId)
 
 	if !(ok_1 && ok_2) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -60,24 +71,27 @@ func MakeFriends(w http.ResponseWriter, req *http.Request) {
 	u_1.Friends = append(u_1.Friends, targetId)
 	u_2.Friends = append(u_2.Friends, sourceId)
 
-	log.Println(s.UserStorage.ToString())
+	log.Println(repository.ToString())
 	log.Println("=============================")
 }
 
 func DeleteUser(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: DELETE /user")
 
+	ctx := req.Context()
+	repository := ctx.Value("storage").(s.Storage)
+
 	var dur m.DeleteUserRequest
 	err := h.ParseJsonTo(&dur, w, req)
 	if err != nil {
 		return
 	}
-	u, ok := s.UserStorage.GetUser(dur.TargetId)
+	u, ok := repository.GetUser(dur.TargetId)
 
 	switch ok {
 	case true:
 		uName := u.Name
-		s.UserStorage.DeleteUser(dur.TargetId)
+		repository.DeleteUser(dur.TargetId)
 
 		r := m.DeleteUserResponse{UserName: uName}
 		response, _ := json.Marshal(r)
@@ -88,22 +102,28 @@ func DeleteUser(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	log.Println(s.UserStorage.ToString())
+	log.Println(repository.ToString())
 	log.Println("=============================")
 }
 
 func GetFriends(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: GET /friends/{userId}")
 
+	ctx := req.Context()
+	repository, _ := ctx.Value("storage").(s.Storage)
+
+	// fmt.Println(repository)
+	// fmt.Printf("%T", repository)
+
 	uId := chi.URLParam(req, "userId")
 	uIdInt, _ := strconv.Atoi(uId)
 
-	u, ok := s.UserStorage.GetUser(uIdInt)
+	u, ok := repository.GetUser(uIdInt)
 	switch ok {
 	case true:
 		result := make([]string, 0)
 		for _, ufId := range u.Friends {
-			uf, _ := s.UserStorage.GetUser(ufId)
+			uf, _ := repository.GetUser(ufId)
 			result = append(result, uf.Name)
 		}
 		r := m.GetFriendsResponse{Friends: result}
@@ -115,12 +135,15 @@ func GetFriends(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	log.Println(s.UserStorage.ToString())
+	log.Println(repository.ToString())
 	log.Println("=============================")
 }
 
 func UpdateUser(w http.ResponseWriter, req *http.Request) {
 	log.Println("API: PUT /{userId}")
+
+	ctx := req.Context()
+	repository, _ := ctx.Value("storage").(s.Storage)
 
 	uId := chi.URLParam(req, "userId")
 	uIdInt, _ := strconv.Atoi(uId)
@@ -132,7 +155,7 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 	}
 	newAgeInt, _ := strconv.Atoi(handReq.Age)
 
-	err = s.UserStorage.UpdateUserAge(uIdInt, newAgeInt)
+	err = repository.UpdateUserAge(uIdInt, newAgeInt)
 	var handResp m.UpdateUserAgeResponse
 	if err != nil {
 		handResp = m.UpdateUserAgeResponse{Message: err.Error()}
@@ -145,6 +168,6 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 
 	w.Write(response)
 
-	log.Println(s.UserStorage.ToString())
+	log.Println(repository.ToString())
 	log.Println("=============================")
 }
